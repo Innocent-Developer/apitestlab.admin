@@ -1,0 +1,29 @@
+export const API_ENDPOINTS = {
+  AUTH: {
+    LOGIN: '/api/auth/login',
+    REFRESH: '/api/auth/refresh',
+    LOGOUT: '/api/auth/logout',
+    ME: '/api/auth/me',
+  },
+  ADMIN_AUTH: {
+    LOGIN: '/api/admin/auth/login',
+    VERIFY_OTP: '/api/admin/auth/verify-otp',
+  },
+  ADMIN: {
+    STATS: '/api/admin/stats',
+    DASHBOARD: '/api/admin/dashboard',
+    USERS: '/api/admin/users',
+    USER: (id) => `/api/admin/users/${id}`,
+    USER_PLAN: (id) => `/api/admin/users/${id}/plan`,
+    USER_ACTIVATE: (id) => `/api/admin/users/${id}/activate`,
+    USER_DEACTIVATE: (id) => `/api/admin/users/${id}/deactivate`,
+    USER_RESET_USAGE: (id) => `/api/admin/users/${id}/reset-usage`,
+    BILLING_USERS: '/api/admin/billing/users',
+    BILLING_TIMELINE: (id) => `/api/admin/billing/timeline/${id}`,
+    GROWTH: '/api/admin/analytics/growth',
+    HISTORY_REQUESTS: '/api/admin/history/requests',
+    HISTORY_ACTIVITY: '/api/admin/history/activity',
+    HISTORY_AUDIT: '/api/admin/history/admin-audit',
+    LOGIN_SESSIONS: '/api/admin/auth/sessions',
+  },
+}
