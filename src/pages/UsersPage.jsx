@@ -1,15 +1,17 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Search } from 'lucide-react'
+import { Plus, Search, Mail, Download } from 'lucide-react'
 import AppShell from '../components/layout/AppShell'
 import DataTable from '../components/ui/DataTable'
 import Pagination from '../components/ui/Pagination'
 import Badge from '../components/ui/Badge'
 import Modal from '../components/ui/Modal'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
+import SendEmailModal from '../components/users/SendEmailModal'
 import { useToast } from '../components/ui/Toast'
 import api, { getApiErrorDetail } from '../lib/api'
 import { API_ENDPOINTS } from '../lib/constants'
+import { downloadAdminExport } from '../lib/download'
 
 const PAGE_SIZE = 10
 
@@ -23,6 +25,9 @@ export default function UsersPage() {
   const [isActive, setIsActive] = useState('')
   const [loading, setLoading] = useState(true)
   const [createOpen, setCreateOpen] = useState(false)
+  const [emailOpen, setEmailOpen] = useState(false)
+  const [emailUser, setEmailUser] = useState(null)
+  const [exporting, setExporting] = useState(false)
   const [confirm, setConfirm] = useState(null)
   const [form, setForm] = useState({
     email: '',
@@ -80,6 +85,29 @@ export default function UsersPage() {
     } finally {
       setConfirm(null)
     }
+  }
+
+  const filterDefaults = { q, plan, is_active: isActive }
+
+  const handleExport = async (format) => {
+    setExporting(true)
+    try {
+      const params = { format }
+      if (q.trim()) params.q = q.trim()
+      if (plan) params.plan = plan
+      if (isActive !== '') params.is_active = isActive === 'true'
+      await downloadAdminExport(API_ENDPOINTS.ADMIN.USERS_EXPORT, params)
+      toast(`Downloaded ${format.toUpperCase()}`, 'success')
+    } catch (err) {
+      toast(getApiErrorDetail(err), 'error')
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  const openMail = (user = null) => {
+    setEmailUser(user)
+    setEmailOpen(true)
   }
 
   const columns = [
@@ -144,6 +172,14 @@ export default function UsersPage() {
           )}
           <button
             type="button"
+            onClick={() => openMail(row)}
+            className="rounded border border-border px-2 py-0.5 text-xs text-info hover:bg-surface-hover"
+            title="Send email"
+          >
+            <Mail className="inline h-3 w-3" />
+          </button>
+          <button
+            type="button"
             onClick={() => setConfirm({ action: 'delete', id: row._id, email: row.email })}
             className="rounded border border-danger/40 px-2 py-0.5 text-xs text-danger hover:bg-danger/10"
           >
@@ -194,6 +230,28 @@ export default function UsersPage() {
           <option value="true">Active</option>
           <option value="false">Inactive</option>
         </select>
+        <button
+          type="button"
+          onClick={() => openMail()}
+          className="flex items-center gap-1 rounded-lg border border-border px-4 py-2 text-sm text-primary hover:bg-surface-hover"
+        >
+          <Mail className="h-4 w-4" />
+          Send email
+        </button>
+        <div className="flex rounded-lg border border-border overflow-hidden">
+          {['csv', 'xlsx', 'pdf'].map((fmt) => (
+            <button
+              key={fmt}
+              type="button"
+              disabled={exporting}
+              onClick={() => handleExport(fmt)}
+              className="flex items-center gap-1 border-r border-border px-3 py-2 text-xs uppercase text-muted last:border-r-0 hover:bg-surface-hover hover:text-primary disabled:opacity-50"
+            >
+              <Download className="h-3.5 w-3.5" />
+              {fmt}
+            </button>
+          ))}
+        </div>
         <button
           type="button"
           onClick={() => setCreateOpen(true)}
@@ -268,6 +326,17 @@ export default function UsersPage() {
         message={`Are you sure you want to ${confirm?.action} ${confirm?.email}?`}
         confirmLabel={confirm?.action === 'delete' ? 'Delete' : 'Deactivate'}
         danger={confirm?.action === 'delete'}
+      />
+
+      <SendEmailModal
+        open={emailOpen}
+        onClose={() => {
+          setEmailOpen(false)
+          setEmailUser(null)
+        }}
+        initialUser={emailUser}
+        filterDefaults={filterDefaults}
+        onSent={(msg) => toast(msg, 'success')}
       />
     </AppShell>
   )

@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Download, Mail } from 'lucide-react'
 import AppShell from '../components/layout/AppShell'
 import Badge from '../components/ui/Badge'
 import DataTable from '../components/ui/DataTable'
 import { useToast } from '../components/ui/Toast'
+import SendEmailModal from '../components/users/SendEmailModal'
 import api, { getApiErrorDetail } from '../lib/api'
 import { API_ENDPOINTS } from '../lib/constants'
+import { downloadAdminExport } from '../lib/download'
 
 export default function UserDetailPage() {
   const { id } = useParams()
@@ -16,6 +18,8 @@ export default function UserDetailPage() {
   const [form, setForm] = useState({})
   const [plan, setPlan] = useState('free')
   const [loading, setLoading] = useState(true)
+  const [emailOpen, setEmailOpen] = useState(false)
+  const [exporting, setExporting] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -75,6 +79,18 @@ export default function UserDetailPage() {
     }
   }
 
+  const exportUser = async (format) => {
+    setExporting(true)
+    try {
+      await downloadAdminExport(API_ENDPOINTS.ADMIN.USER_EXPORT(id), { format })
+      toast(`Downloaded ${format.toUpperCase()}`, 'success')
+    } catch (err) {
+      toast(getApiErrorDetail(err), 'error')
+    } finally {
+      setExporting(false)
+    }
+  }
+
   if (loading) {
     return (
       <AppShell title="User detail">
@@ -106,6 +122,27 @@ export default function UserDetailPage() {
             {user.is_active ? 'Active' : 'Inactive'}
           </Badge>
           {user.is_admin && <Badge>Admin</Badge>}
+          <div className="ml-auto flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setEmailOpen(true)}
+              className="flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-sm hover:bg-surface-hover"
+            >
+              <Mail className="h-4 w-4" /> Email
+            </button>
+            {['csv', 'xlsx', 'pdf'].map((fmt) => (
+              <button
+                key={fmt}
+                type="button"
+                disabled={exporting}
+                onClick={() => exportUser(fmt)}
+                className="flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs uppercase text-muted hover:bg-surface-hover disabled:opacity-50"
+              >
+                <Download className="h-3.5 w-3.5" />
+                {fmt}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-3">
           <p>
@@ -213,6 +250,13 @@ export default function UserDetailPage() {
           emptyMessage="No recent requests"
         />
       </div>
+
+      <SendEmailModal
+        open={emailOpen}
+        onClose={() => setEmailOpen(false)}
+        initialUser={user}
+        onSent={(msg) => toast(msg, 'success')}
+      />
     </AppShell>
   )
 }
