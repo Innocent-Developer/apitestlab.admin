@@ -1,5 +1,4 @@
 import {
-  Mail,
   User,
   Phone,
   MapPin,
@@ -8,8 +7,6 @@ import {
   Clock,
   Globe,
   FlaskConical,
-  Fingerprint,
-  Hash,
 } from 'lucide-react'
 import Badge from '../ui/Badge'
 
