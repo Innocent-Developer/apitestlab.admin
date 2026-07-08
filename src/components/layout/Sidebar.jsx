@@ -5,6 +5,7 @@ import {
   Activity,
   CreditCard,
   BarChart3,
+  Mail,
   Shield,
 } from 'lucide-react'
 
@@ -14,6 +15,7 @@ const NAV = [
   { to: '/activity', icon: Activity, label: 'Activity' },
   { to: '/billing', icon: CreditCard, label: 'Billing' },
   { to: '/analytics', icon: BarChart3, label: 'Analytics' },
+  { to: '/emails', icon: Mail, label: 'Emails' },
 ]
 
 export default function Sidebar() {

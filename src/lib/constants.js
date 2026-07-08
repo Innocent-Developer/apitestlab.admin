@@ -21,6 +21,7 @@ export const API_ENDPOINTS = {
     USER_EXPORT: (id) => `/api/admin/users/${id}/export`,
     USERS_EXPORT: '/api/admin/users/export',
     SEND_EMAIL: '/api/admin/users/send-email',
+    EMAIL_DRAFT: '/api/admin/emails/draft',
     BILLING_USERS: '/api/admin/billing/users',
     BILLING_TIMELINE: (id) => `/api/admin/billing/timeline/${id}`,
     GROWTH: '/api/admin/analytics/growth',

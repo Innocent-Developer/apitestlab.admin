@@ -8,7 +8,7 @@ import Modal from '../components/ui/Modal'
 import api from '../lib/api'
 import { API_ENDPOINTS } from '../lib/constants'
 
-const PAGE_SIZE = 15
+const PAGE_SIZE = 20
 
 export default function BillingPage() {
   const [rows, setRows] = useState([])

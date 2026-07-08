@@ -9,6 +9,7 @@ import UserDetailPage from './pages/UserDetailPage'
 import ActivityPage from './pages/ActivityPage'
 import BillingPage from './pages/BillingPage'
 import AnalyticsPage from './pages/AnalyticsPage'
+import EmailsPage from './pages/EmailsPage'
 
 export default function App() {
   return (
@@ -62,6 +63,14 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <AnalyticsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/emails"
+              element={
+                <ProtectedRoute>
+                  <EmailsPage />
                 </ProtectedRoute>
               }
             />
