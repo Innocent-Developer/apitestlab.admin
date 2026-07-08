@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Search, Mail, Download } from 'lucide-react'
+import { Plus, Search, Mail, Download, Eye } from 'lucide-react'
 import AppShell from '../components/layout/AppShell'
 import DataTable from '../components/ui/DataTable'
 import Pagination from '../components/ui/Pagination'
@@ -149,6 +149,13 @@ export default function UsersPage() {
         <div className="flex flex-wrap gap-1">
           <Link
             to={`/users/${row._id}`}
+            className="flex items-center gap-1 rounded border border-border px-2 py-0.5 text-xs text-pulse hover:bg-surface-hover"
+            title="View complete details"
+          >
+            <Eye className="h-3 w-3" /> View
+          </Link>
+          <Link
+            to={`/users/${row._id}?tab=manage`}
             className="rounded border border-border px-2 py-0.5 text-xs hover:bg-surface-hover"
           >
             Edit

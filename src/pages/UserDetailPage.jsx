@@ -1,17 +1,19 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Download, Mail } from 'lucide-react'
 import AppShell from '../components/layout/AppShell'
 import Badge from '../components/ui/Badge'
 import DataTable from '../components/ui/DataTable'
 import { useToast } from '../components/ui/Toast'
 import SendEmailModal from '../components/users/SendEmailModal'
+import UserOverview from '../components/users/UserOverview'
 import api, { getApiErrorDetail } from '../lib/api'
 import { API_ENDPOINTS } from '../lib/constants'
 import { downloadAdminExport } from '../lib/download'
 
 export default function UserDetailPage() {
   const { id } = useParams()
+  const [searchParams] = useSearchParams()
   const { toast } = useToast()
   const [user, setUser] = useState(null)
   const [activity, setActivity] = useState([])
@@ -20,6 +22,7 @@ export default function UserDetailPage() {
   const [loading, setLoading] = useState(true)
   const [emailOpen, setEmailOpen] = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [tab, setTab] = useState(searchParams.get('tab') === 'manage' ? 'manage' : 'overview')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -158,7 +161,29 @@ export default function UserDetailPage() {
         </div>
       </div>
 
-      <div className="mb-6 grid gap-6 lg:grid-cols-2">
+      <div className="mb-6 flex gap-2 border-b border-border">
+        {[
+          { id: 'overview', label: 'Overview' },
+          { id: 'manage', label: 'Manage' },
+        ].map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setTab(t.id)}
+            className={`-mb-px border-b-2 px-4 py-2 text-sm transition ${
+              tab === t.id
+                ? 'border-pulse text-pulse'
+                : 'border-transparent text-muted hover:text-primary'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'overview' && <UserOverview user={user} />}
+
+      <div className={tab === 'manage' ? 'grid gap-6 lg:grid-cols-2' : 'hidden'}>
         <div className="rounded-xl border border-border bg-surface p-5">
           <h3 className="mb-4 font-semibold text-primary">Edit profile</h3>
           <div className="space-y-3">
@@ -233,7 +258,7 @@ export default function UserDetailPage() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-border bg-surface">
+      <div className="mt-6 rounded-xl border border-border bg-surface">
         <h3 className="border-b border-border px-4 py-3 font-semibold text-primary">Recent API requests</h3>
         <DataTable
           columns={[
