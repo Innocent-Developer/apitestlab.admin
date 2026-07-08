@@ -10,6 +10,7 @@ import ActivityPage from './pages/ActivityPage'
 import BillingPage from './pages/BillingPage'
 import AnalyticsPage from './pages/AnalyticsPage'
 import EmailsPage from './pages/EmailsPage'
+import ServerHealthPage from './pages/ServerHealthPage'
 
 export default function App() {
   return (
@@ -71,6 +72,14 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <EmailsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/server-health"
+              element={
+                <ProtectedRoute>
+                  <ServerHealthPage />
                 </ProtectedRoute>
               }
             />

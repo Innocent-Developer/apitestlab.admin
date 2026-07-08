@@ -29,5 +29,6 @@ export const API_ENDPOINTS = {
     HISTORY_ACTIVITY: '/api/admin/history/activity',
     HISTORY_AUDIT: '/api/admin/history/admin-audit',
     LOGIN_SESSIONS: '/api/admin/auth/sessions',
+    SERVER_HEALTH: '/api/admin/server-health',
   },
 }

@@ -6,11 +6,13 @@ import {
   CreditCard,
   BarChart3,
   Mail,
+  Server,
   Shield,
 } from 'lucide-react'
 
 const NAV = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true },
+  { to: '/server-health', icon: Server, label: 'Server health' },
   { to: '/users', icon: Users, label: 'Users' },
   { to: '/activity', icon: Activity, label: 'Activity' },
   { to: '/billing', icon: CreditCard, label: 'Billing' },
