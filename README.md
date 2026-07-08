@@ -1,4 +1,4 @@
-# API Test Lab — Admin Panel
+# API Test Lab  Admin Panel
 
 Secure admin dashboard for managing users, plans, billing, activity, and analytics.
 
@@ -7,11 +7,11 @@ Built with **Create React App** (not Vite), **Tailwind CSS**, **React Router**, 
 ## Features
 
 - **OTP-secured admin login** (email + password, then 6-digit code)
-- **Dashboard** — users, tests, traffic stats
-- **Users** — search, filter, create, edit, change plan, activate/deactivate, delete
-- **Activity** — API requests, user activity, admin audit log, admin login sessions (IP tracked)
-- **Billing** — Freemius snapshot + per-user timeline
-- **Analytics** — user growth chart
+- **Dashboard**  users, tests, traffic stats
+- **Users**  search, filter, create, edit, change plan, activate/deactivate, delete
+- **Activity**  API requests, user activity, admin audit log, admin login sessions (IP tracked)
+- **Billing**  Freemius snapshot + per-user timeline
+- **Analytics**  user growth chart
 
 ## Prerequisites
 
@@ -44,7 +44,7 @@ Add your admin panel origin to backend `ALLOWED_ORIGINS` in production.
 
 ## Create an admin user
 
-**Option A — MongoDB shell**
+**Option A  MongoDB shell**
 
 ```js
 db.users.updateOne(
@@ -53,7 +53,7 @@ db.users.updateOne(
 )
 ```
 
-**Option B — Create via API** (if you already have an admin)
+**Option B  Create via API** (if you already have an admin)
 
 `POST /api/admin/users` with `is_admin: true`.
 

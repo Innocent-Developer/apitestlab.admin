@@ -41,7 +41,7 @@ function StatCard({ icon: Icon, label, value, sub, accent = 'pulse' }) {
           <Icon className="h-5 w-5 text-pulse" />
         </div>
       </div>
-      <p className="text-3xl font-bold tracking-tight text-primary">{value ?? '—'}</p>
+      <p className="text-3xl font-bold tracking-tight text-primary">{value ?? ''}</p>
       {sub && <p className="mt-1 text-xs text-muted">{sub}</p>}
     </div>
   )
@@ -78,7 +78,7 @@ export default function DashboardPage() {
           <div className="rounded-xl border border-border bg-surface/80 p-5">
             <h2 className="text-lg font-semibold text-primary">Overview</h2>
             <p className="mt-1 text-sm text-muted">
-              Platform health at a glance — users, tests, and growth.
+              Platform health at a glance  users, tests, and growth.
             </p>
           </div>
 
@@ -202,7 +202,7 @@ export default function DashboardPage() {
                   <div key={a.id} className="px-4 py-3 text-sm">
                     <p className="text-primary">{a.action}</p>
                     <p className="text-xs text-muted">
-                      {a.entity} · {a.created_at ? new Date(a.created_at).toLocaleString() : '—'}
+                      {a.entity} · {a.created_at ? new Date(a.created_at).toLocaleString() : ''}
                     </p>
                   </div>
                 ))}

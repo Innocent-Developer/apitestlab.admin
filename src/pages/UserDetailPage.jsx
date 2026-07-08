@@ -150,7 +150,7 @@ export default function UserDetailPage() {
           </p>
           <p>
             <span className="text-muted">Created:</span>{' '}
-            {user.created_at ? new Date(user.created_at).toLocaleString() : '—'}
+            {user.created_at ? new Date(user.created_at).toLocaleString() : ''}
           </p>
           <p>
             <span className="text-muted">Trial:</span> {user.is_trial_active ? 'Active' : 'No'}
@@ -243,7 +243,7 @@ export default function UserDetailPage() {
             {
               key: 'created_at',
               label: 'When',
-              render: (r) => (r.created_at ? new Date(r.created_at).toLocaleString() : '—'),
+              render: (r) => (r.created_at ? new Date(r.created_at).toLocaleString() : ''),
             },
           ]}
           rows={activity}

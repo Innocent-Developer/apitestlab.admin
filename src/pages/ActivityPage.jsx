@@ -22,7 +22,7 @@ const COLUMNS = {
     {
       key: 'created_at',
       label: 'When',
-      render: (r) => (r.created_at ? new Date(r.created_at).toLocaleString() : '—'),
+      render: (r) => (r.created_at ? new Date(r.created_at).toLocaleString() : ''),
     },
   ],
   activity: [
@@ -33,7 +33,7 @@ const COLUMNS = {
     {
       key: 'timestamp',
       label: 'When',
-      render: (r) => (r.timestamp ? new Date(r.timestamp).toLocaleString() : '—'),
+      render: (r) => (r.timestamp ? new Date(r.timestamp).toLocaleString() : ''),
     },
   ],
   audit: [
@@ -44,7 +44,7 @@ const COLUMNS = {
     {
       key: 'created_at',
       label: 'When',
-      render: (r) => (r.created_at ? new Date(r.created_at).toLocaleString() : '—'),
+      render: (r) => (r.created_at ? new Date(r.created_at).toLocaleString() : ''),
     },
   ],
   sessions: [
@@ -59,7 +59,7 @@ const COLUMNS = {
     {
       key: 'created_at',
       label: 'When',
-      render: (r) => (r.created_at ? new Date(r.created_at).toLocaleString() : '—'),
+      render: (r) => (r.created_at ? new Date(r.created_at).toLocaleString() : ''),
     },
   ],
 }

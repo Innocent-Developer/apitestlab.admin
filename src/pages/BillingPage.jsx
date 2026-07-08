@@ -55,13 +55,13 @@ export default function BillingPage() {
     {
       key: 'trial',
       label: 'Trial',
-      render: (r) => (r.is_trial_active ? 'Active' : '—'),
+      render: (r) => (r.is_trial_active ? 'Active' : ''),
     },
     {
       key: 'renews',
       label: 'Renews',
       render: (r) =>
-        r.subscription_renews_at ? new Date(r.subscription_renews_at).toLocaleDateString() : '—',
+        r.subscription_renews_at ? new Date(r.subscription_renews_at).toLocaleDateString() : '',
     },
     {
       key: 'actions',
@@ -97,7 +97,7 @@ export default function BillingPage() {
           setTimeline(null)
           setTimelineUser(null)
         }}
-        title={`Billing timeline — ${timelineUser}`}
+        title={`Billing timeline  ${timelineUser}`}
         wide
       >
         {timeline?.length ? (
@@ -106,7 +106,7 @@ export default function BillingPage() {
               <li key={i} className="rounded-lg border border-border px-4 py-3 text-sm">
                 <span className="font-medium text-primary">{ev.type}</span>
                 <span className="ml-2 text-muted">
-                  {ev.at ? new Date(ev.at).toLocaleString() : '—'}
+                  {ev.at ? new Date(ev.at).toLocaleString() : ''}
                 </span>
               </li>
             ))}

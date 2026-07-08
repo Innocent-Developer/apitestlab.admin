@@ -123,7 +123,7 @@ export default function UsersPage() {
     {
       key: 'name',
       label: 'Name',
-      render: (row) => `${row.first_name || ''} ${row.last_name || ''}`.trim() || '—',
+      render: (row) => `${row.first_name || ''} ${row.last_name || ''}`.trim() || '',
     },
     {
       key: 'plan',
