@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Loader2, Mail, Search, Sparkles, Users } from 'lucide-react'
+import { Loader2, Mail, Search, Sparkles, AtSign, Users } from 'lucide-react'
 import AppShell from '../components/layout/AppShell'
 import Badge from '../components/ui/Badge'
 import DataTable from '../components/ui/DataTable'
@@ -10,8 +10,31 @@ import { API_ENDPOINTS } from '../lib/constants'
 
 const PAGE_SIZE = 20
 
+const EMAIL_STYLES = [
+  { value: 'professional', label: 'Professional', hint: 'Polished business email' },
+  { value: 'complete', label: 'Complete', hint: 'Full email with sections + CTA + signature' },
+  { value: 'formal', label: 'Formal', hint: 'Official corporate notice' },
+  { value: 'friendly', label: 'Friendly', hint: 'Warm and approachable' },
+  { value: 'marketing', label: 'Marketing', hint: 'Promotional with clear CTA' },
+  { value: 'announcement', label: 'Announcement', hint: 'Product or platform update' },
+  { value: 'newsletter', label: 'Newsletter', hint: 'Scannable sections and bullets' },
+  { value: 'support', label: 'Support', hint: 'Empathetic help-desk tone' },
+  { value: 'urgent', label: 'Urgent', hint: 'Direct and time-sensitive' },
+  { value: 'short', label: 'Short', hint: 'Brief 2–4 sentences' },
+]
+
+const EMAIL_LENGTHS = [
+  { value: 'short', label: 'Short' },
+  { value: 'standard', label: 'Standard' },
+  { value: 'detailed', label: 'Detailed' },
+  { value: 'complete', label: 'Complete' },
+]
+
 export default function EmailsPage() {
   const { toast } = useToast()
+
+  const [mode, setMode] = useState('users') // users | custom
+
   const [users, setUsers] = useState([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(0)
@@ -23,9 +46,11 @@ export default function EmailsPage() {
   const [target, setTarget] = useState('selected')
   const [selectedIds, setSelectedIds] = useState([])
   const [onlyActive, setOnlyActive] = useState(true)
+  const [recipientInput, setRecipientInput] = useState('')
 
   const [aiPrompt, setAiPrompt] = useState('')
-  const [tone, setTone] = useState('friendly')
+  const [emailStyle, setEmailStyle] = useState('professional')
+  const [emailLength, setEmailLength] = useState('standard')
   const [subject, setSubject] = useState('')
   const [body, setBody] = useState('')
   const [bodyType, setBodyType] = useState('plain')
@@ -33,6 +58,7 @@ export default function EmailsPage() {
   const [sending, setSending] = useState(false)
 
   const loadUsers = useCallback(async () => {
+    if (mode !== 'users') return
     setLoadingUsers(true)
     try {
       const params = { skip: page * PAGE_SIZE, limit: PAGE_SIZE }
@@ -47,7 +73,7 @@ export default function EmailsPage() {
     } finally {
       setLoadingUsers(false)
     }
-  }, [page, q, plan, isActive, toast])
+  }, [mode, page, q, plan, isActive, toast])
 
   useEffect(() => {
     loadUsers()
@@ -68,14 +94,29 @@ export default function EmailsPage() {
     }
   }
 
+  const parsedRecipients = useMemo(
+    () =>
+      recipientInput
+        .split(/[,;\n]+/)
+        .map((s) => s.trim())
+        .filter(Boolean),
+    [recipientInput],
+  )
+
   const audienceLabel =
-    target === 'all'
-      ? onlyActive
-        ? 'all active users'
-        : 'all users'
-      : target === 'filtered'
-        ? 'currently filtered users'
-        : `${selectedIds.length} selected user(s)`
+    mode === 'custom'
+      ? parsedRecipients.length
+        ? `${parsedRecipients.length} custom recipient(s)`
+        : 'custom recipient (not set)'
+      : target === 'all'
+        ? onlyActive
+          ? 'all active users'
+          : 'all users'
+        : target === 'filtered'
+          ? 'currently filtered users'
+          : `${selectedIds.length} selected user(s)`
+
+  const selectedStyle = EMAIL_STYLES.find((s) => s.value === emailStyle)
 
   const generateDraft = async () => {
     if (!aiPrompt.trim()) {
@@ -87,7 +128,9 @@ export default function EmailsPage() {
       const { data } = await api.post(API_ENDPOINTS.ADMIN.EMAIL_DRAFT, {
         prompt: aiPrompt.trim(),
         audience: audienceLabel,
-        tone,
+        tone: emailStyle,
+        style: emailStyle,
+        length: emailLength,
         body_type: bodyType,
       })
       setSubject(data.subject || '')
@@ -103,7 +146,11 @@ export default function EmailsPage() {
 
   const sendEmail = async (e) => {
     e.preventDefault()
-    if (target === 'selected' && selectedIds.length === 0) {
+    if (mode === 'custom' && parsedRecipients.length === 0) {
+      toast('Add at least one receiver email address.', 'error')
+      return
+    }
+    if (mode === 'users' && target === 'selected' && selectedIds.length === 0) {
       toast('Select at least one user.', 'error')
       return
     }
@@ -113,16 +160,17 @@ export default function EmailsPage() {
         subject,
         body,
         body_type: bodyType,
-        target,
+        target: mode === 'custom' ? 'custom' : target,
         only_active: onlyActive,
       }
-      if (target === 'selected') payload.user_ids = selectedIds
-      if (target === 'filtered') {
+      if (mode === 'custom') payload.recipient_emails = parsedRecipients
+      if (mode === 'users' && target === 'selected') payload.user_ids = selectedIds
+      if (mode === 'users' && target === 'filtered') {
         if (q.trim()) payload.q = q.trim()
         if (plan) payload.plan = plan
         if (isActive !== '') payload.is_active = isActive === 'true'
       }
-      if (target === 'all' && plan) payload.plan = plan
+      if (mode === 'users' && target === 'all' && plan) payload.plan = plan
 
       const { data } = await api.post(API_ENDPOINTS.ADMIN.SEND_EMAIL, payload)
       toast(data.message || 'Email queued', 'success')
@@ -136,54 +184,150 @@ export default function EmailsPage() {
   return (
     <AppShell title="Emails">
       <div className="mb-6 rounded-xl border border-border bg-surface/80 p-5">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="rounded-lg bg-pulse/10 p-2 text-pulse">
-            <Mail className="h-5 w-5" />
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg bg-pulse/10 p-2 text-pulse">
+              <Mail className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-primary">Email center</h2>
+              <p className="text-sm text-muted">
+                Generate professional emails with AI, then send to users or any custom receiver address.
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-lg font-semibold text-primary">Email center</h2>
-            <p className="text-sm text-muted">
-              Write with AI, review the message, then send to all, filtered, or selected users.
-            </p>
+          <div className="flex rounded-lg border border-border p-1">
+            <button
+              type="button"
+              onClick={() => setMode('users')}
+              className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition ${
+                mode === 'users' ? 'bg-pulse/15 text-pulse' : 'text-muted hover:text-primary'
+              }`}
+            >
+              <Users className="h-4 w-4" />
+              To users
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('custom')}
+              className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition ${
+                mode === 'custom' ? 'bg-pulse/15 text-pulse' : 'text-muted hover:text-primary'
+              }`}
+            >
+              <AtSign className="h-4 w-4" />
+              Custom receiver
+            </button>
           </div>
         </div>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1fr_420px]">
+      <div className={`grid gap-6 ${mode === 'users' ? 'xl:grid-cols-[1fr_420px]' : ''}`}>
         <form onSubmit={sendEmail} className="space-y-6">
+          {mode === 'custom' && (
+            <div className="rounded-xl border border-border bg-surface p-5">
+              <h3 className="mb-3 font-semibold text-primary">Receiver email</h3>
+              <p className="mb-3 text-xs text-muted">
+                Enter one or more email addresses. Separate multiple addresses with a comma, semicolon, or new line.
+              </p>
+              <textarea
+                rows={3}
+                value={recipientInput}
+                onChange={(e) => setRecipientInput(e.target.value)}
+                placeholder="partner@company.com, support@vendor.com"
+                className="w-full rounded-lg border border-border bg-void px-3 py-2 text-sm"
+              />
+              {parsedRecipients.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {parsedRecipients.map((email) => (
+                    <span
+                      key={email}
+                      className="rounded-full border border-border bg-void px-2.5 py-0.5 text-xs text-primary"
+                    >
+                      {email}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="rounded-xl border border-border bg-surface p-5">
             <div className="mb-4 flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-pulse" />
               <h3 className="font-semibold text-primary">AI writer</h3>
             </div>
-            <div className="grid gap-3 lg:grid-cols-[1fr_160px_140px]">
+            <div className="space-y-3">
               <textarea
                 rows={3}
                 value={aiPrompt}
                 onChange={(e) => setAiPrompt(e.target.value)}
-                placeholder="Example: Write a friendly email announcing Pro plan access and explaining the new benefits."
-                className="rounded-lg border border-border bg-void px-3 py-2 text-sm"
+                placeholder={
+                  mode === 'custom'
+                    ? 'Example: Write a professional email to our partner about the new API integration.'
+                    : 'Example: Write a complete professional email announcing Pro plan access and new benefits.'
+                }
+                className="w-full rounded-lg border border-border bg-void px-3 py-2 text-sm"
               />
-              <select
-                value={tone}
-                onChange={(e) => setTone(e.target.value)}
-                className="rounded-lg border border-border bg-void px-3 py-2 text-sm"
-              >
-                <option value="friendly">Friendly</option>
-                <option value="professional">Professional</option>
-                <option value="urgent">Urgent</option>
-                <option value="short">Short</option>
-                <option value="marketing">Marketing</option>
-              </select>
-              <button
-                type="button"
-                onClick={generateDraft}
-                disabled={drafting}
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-pulse px-4 py-2 text-sm font-medium text-void disabled:opacity-50"
-              >
-                {drafting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                Generate
-              </button>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div>
+                  <label className="mb-1 block text-xs text-muted">Style</label>
+                  <select
+                    value={emailStyle}
+                    onChange={(e) => setEmailStyle(e.target.value)}
+                    className="w-full rounded-lg border border-border bg-void px-3 py-2 text-sm"
+                  >
+                    {EMAIL_STYLES.map((s) => (
+                      <option key={s.value} value={s.value}>
+                        {s.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs text-muted">Length</label>
+                  <select
+                    value={emailLength}
+                    onChange={(e) => setEmailLength(e.target.value)}
+                    className="w-full rounded-lg border border-border bg-void px-3 py-2 text-sm"
+                  >
+                    {EMAIL_LENGTHS.map((l) => (
+                      <option key={l.value} value={l.value}>
+                        {l.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs text-muted">Format</label>
+                  <select
+                    value={bodyType}
+                    onChange={(e) => setBodyType(e.target.value)}
+                    className="w-full rounded-lg border border-border bg-void px-3 py-2 text-sm"
+                  >
+                    <option value="plain">Plain text</option>
+                    <option value="html">HTML</option>
+                  </select>
+                </div>
+                <div className="flex items-end">
+                  <button
+                    type="button"
+                    onClick={generateDraft}
+                    disabled={drafting}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-pulse px-4 py-2 text-sm font-medium text-void disabled:opacity-50"
+                  >
+                    {drafting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                    Generate
+                  </button>
+                </div>
+              </div>
+              {selectedStyle && (
+                <p className="text-xs text-muted">
+                  {selectedStyle.hint}
+                  {emailStyle === 'complete' || emailLength === 'complete'
+                    ? ' · Includes greeting, structured sections, CTA, and signature.'
+                    : ''}
+                </p>
+              )}
             </div>
           </div>
 
@@ -201,17 +345,7 @@ export default function EmailsPage() {
                 />
               </div>
               <div>
-                <div className="mb-1 flex items-center justify-between">
-                  <label className="text-xs text-muted">Body</label>
-                  <select
-                    value={bodyType}
-                    onChange={(e) => setBodyType(e.target.value)}
-                    className="rounded border border-border bg-void px-2 py-0.5 text-xs"
-                  >
-                    <option value="plain">Plain text</option>
-                    <option value="html">HTML</option>
-                  </select>
-                </div>
+                <label className="mb-1 block text-xs text-muted">Body</label>
                 <textarea
                   required
                   rows={12}
@@ -223,7 +357,8 @@ export default function EmailsPage() {
               </div>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-xs text-muted">
-                  Sending to <span className="text-primary">{audienceLabel}</span>.
+                  Sending to <span className="text-primary">{audienceLabel}</span>
+                  {mode === 'custom' ? ' · not platform users' : ''}.
                 </p>
                 <button
                   type="submit"
@@ -231,142 +366,139 @@ export default function EmailsPage() {
                   className="inline-flex items-center gap-2 rounded-lg bg-info px-5 py-2 text-sm font-medium text-white disabled:opacity-50"
                 >
                   {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
-                  Send email
+                  {mode === 'custom' ? 'Send to receiver' : 'Send email'}
                 </button>
               </div>
             </div>
           </div>
         </form>
 
-        <div className="space-y-6">
-          <div className="rounded-xl border border-border bg-surface p-5">
-            <div className="mb-4 flex items-center gap-2">
-              <Users className="h-4 w-4 text-pulse" />
-              <h3 className="font-semibold text-primary">Recipients</h3>
+        {mode === 'users' && (
+          <div className="space-y-6">
+            <div className="rounded-xl border border-border bg-surface p-5">
+              <div className="mb-4 flex items-center gap-2">
+                <Users className="h-4 w-4 text-pulse" />
+                <h3 className="font-semibold text-primary">Recipients</h3>
+              </div>
+              <div className="space-y-3">
+                <select
+                  value={target}
+                  onChange={(e) => setTarget(e.target.value)}
+                  className="w-full rounded-lg border border-border bg-void px-3 py-2 text-sm"
+                >
+                  <option value="selected">Selected users</option>
+                  <option value="filtered">Filtered users</option>
+                  <option value="all">All users</option>
+                </select>
+                {(target === 'all' || target === 'filtered') && (
+                  <label className="flex items-center gap-2 text-sm text-muted">
+                    <input
+                      type="checkbox"
+                      checked={onlyActive}
+                      onChange={(e) => setOnlyActive(e.target.checked)}
+                    />
+                    Active users only
+                  </label>
+                )}
+                <p className="rounded-lg border border-border bg-void px-3 py-2 text-sm text-muted">
+                  Selected: <span className="text-primary">{selectedIds.length}</span>
+                </p>
+              </div>
             </div>
-            <div className="space-y-3">
-              <select
-                value={target}
-                onChange={(e) => setTarget(e.target.value)}
-                className="w-full rounded-lg border border-border bg-void px-3 py-2 text-sm"
-              >
-                <option value="selected">Selected users</option>
-                <option value="filtered">Filtered users</option>
-                <option value="all">All users</option>
-              </select>
-              {(target === 'all' || target === 'filtered') && (
-                <label className="flex items-center gap-2 text-sm text-muted">
+
+            <div className="rounded-xl border border-border bg-surface p-5">
+              <h3 className="mb-4 font-semibold text-primary">Find users</h3>
+              <div className="mb-4 space-y-3">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
                   <input
-                    type="checkbox"
-                    checked={onlyActive}
-                    onChange={(e) => setOnlyActive(e.target.checked)}
+                    value={q}
+                    onChange={(e) => {
+                      setQ(e.target.value)
+                      setPage(0)
+                    }}
+                    placeholder="Search by email"
+                    className="w-full rounded-lg border border-border bg-void py-2 pl-9 pr-3 text-sm"
                   />
-                  Active users only
-                </label>
-              )}
-              <p className="rounded-lg border border-border bg-void px-3 py-2 text-sm text-muted">
-                Selected: <span className="text-primary">{selectedIds.length}</span>
-              </p>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-border bg-surface p-5">
-            <h3 className="mb-4 font-semibold text-primary">Find users</h3>
-            <div className="mb-4 space-y-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-                <input
-                  value={q}
-                  onChange={(e) => {
-                    setQ(e.target.value)
-                    setPage(0)
-                  }}
-                  placeholder="Search by email"
-                  className="w-full rounded-lg border border-border bg-void py-2 pl-9 pr-3 text-sm"
-                />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <select
+                    value={plan}
+                    onChange={(e) => {
+                      setPlan(e.target.value)
+                      setPage(0)
+                    }}
+                    className="rounded-lg border border-border bg-void px-3 py-2 text-sm"
+                  >
+                    <option value="">All plans</option>
+                    <option value="free">Free</option>
+                    <option value="pro">Pro</option>
+                    <option value="max">Max</option>
+                  </select>
+                  <select
+                    value={isActive}
+                    onChange={(e) => {
+                      setIsActive(e.target.value)
+                      setPage(0)
+                    }}
+                    className="rounded-lg border border-border bg-void px-3 py-2 text-sm"
+                  >
+                    <option value="">All status</option>
+                    <option value="true">Active</option>
+                    <option value="false">Inactive</option>
+                  </select>
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <select
-                  value={plan}
-                  onChange={(e) => {
-                    setPlan(e.target.value)
-                    setPage(0)
-                  }}
-                  className="rounded-lg border border-border bg-void px-3 py-2 text-sm"
-                >
-                  <option value="">All plans</option>
-                  <option value="free">Free</option>
-                  <option value="pro">Pro</option>
-                  <option value="max">Max</option>
-                </select>
-                <select
-                  value={isActive}
-                  onChange={(e) => {
-                    setIsActive(e.target.value)
-                    setPage(0)
-                  }}
-                  className="rounded-lg border border-border bg-void px-3 py-2 text-sm"
-                >
-                  <option value="">All status</option>
-                  <option value="true">Active</option>
-                  <option value="false">Inactive</option>
-                </select>
+
+              <div className="mb-3 flex items-center justify-between text-xs text-muted">
+                <button type="button" onClick={toggleVisible} className="text-pulse hover:underline">
+                  {visibleSelected ? 'Unselect visible' : 'Select visible'}
+                </button>
+                <span>{total} user(s)</span>
               </div>
-            </div>
 
-            <div className="mb-3 flex items-center justify-between text-xs text-muted">
-              <button type="button" onClick={toggleVisible} className="text-pulse hover:underline">
-                {visibleSelected ? 'Unselect visible' : 'Select visible'}
-              </button>
-              <span>{total} user(s)</span>
-            </div>
-
-            {loadingUsers ? (
-              <p className="py-8 text-center text-sm text-muted">Loading users...</p>
-            ) : (
-              <DataTable
-                keyField="_id"
-                rows={users}
-                emptyMessage="No users found"
-                columns={[
-                  {
-                    key: 'select',
-                    label: '',
-                    render: (row) => (
-                      <input
-                        type="checkbox"
-                        checked={selectedSet.has(row._id)}
-                        onChange={() => toggleUser(row._id)}
-                      />
-                    ),
-                  },
-                  {
-                    key: 'email',
-                    label: 'Email',
-                    render: (row) => (
-                      <div>
-                        <p className="text-primary">{row.email}</p>
-                        <div className="mt-1 flex gap-1">
-                          <Badge variant="plan">{row.plan}</Badge>
-                          <Badge variant={row.is_active ? 'success' : 'danger'}>
-                            {row.is_active ? 'Active' : 'Inactive'}
-                          </Badge>
+              {loadingUsers ? (
+                <p className="py-8 text-center text-sm text-muted">Loading users...</p>
+              ) : (
+                <DataTable
+                  keyField="_id"
+                  rows={users}
+                  emptyMessage="No users found"
+                  columns={[
+                    {
+                      key: 'select',
+                      label: '',
+                      render: (row) => (
+                        <input
+                          type="checkbox"
+                          checked={selectedSet.has(row._id)}
+                          onChange={() => toggleUser(row._id)}
+                        />
+                      ),
+                    },
+                    {
+                      key: 'email',
+                      label: 'Email',
+                      render: (row) => (
+                        <div>
+                          <p className="text-primary">{row.email}</p>
+                          <div className="mt-1 flex gap-1">
+                            <Badge variant="plan">{row.plan}</Badge>
+                            <Badge variant={row.is_active ? 'success' : 'danger'}>
+                              {row.is_active ? 'Active' : 'Inactive'}
+                            </Badge>
+                          </div>
                         </div>
-                      </div>
-                    ),
-                  },
-                ]}
-              />
-            )}
+                      ),
+                    },
+                  ]}
+                />
+              )}
 
-            <Pagination
-              page={page}
-              pageSize={PAGE_SIZE}
-              total={total}
-              onPageChange={setPage}
-            />
+              <Pagination page={page} pageSize={PAGE_SIZE} total={total} onPageChange={setPage} />
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </AppShell>
   )
