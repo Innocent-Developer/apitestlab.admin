@@ -7,6 +7,7 @@ import DataTable from '../components/ui/DataTable'
 import { useToast } from '../components/ui/Toast'
 import SendEmailModal from '../components/users/SendEmailModal'
 import UserOverview from '../components/users/UserOverview'
+import UserReferralPanel from '../components/referrals/UserReferralPanel'
 import api, { getApiErrorDetail } from '../lib/api'
 import { API_ENDPOINTS } from '../lib/constants'
 import { downloadAdminExport } from '../lib/download'
@@ -22,7 +23,11 @@ export default function UserDetailPage() {
   const [loading, setLoading] = useState(true)
   const [emailOpen, setEmailOpen] = useState(false)
   const [exporting, setExporting] = useState(false)
-  const [tab, setTab] = useState(searchParams.get('tab') === 'manage' ? 'manage' : 'overview')
+  const [tab, setTab] = useState(
+    ['manage', 'referrals'].includes(searchParams.get('tab')) ? searchParams.get('tab') : 'overview',
+  )
+  const [referralData, setReferralData] = useState(null)
+  const [referralLoading, setReferralLoading] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -51,6 +56,20 @@ export default function UserDetailPage() {
   useEffect(() => {
     load()
   }, [load])
+
+  useEffect(() => {
+    if (tab !== 'referrals') return
+    setReferralLoading(true)
+    api
+      .get(API_ENDPOINTS.ADMIN.USER_REFERRALS(id))
+      .then((res) => setReferralData(res.data))
+      .catch((err) => toast(getApiErrorDetail(err), 'error'))
+      .finally(() => setReferralLoading(false))
+  }, [tab, id, toast])
+
+  const copyCode = (code) => {
+    navigator.clipboard?.writeText(code).then(() => toast('Copied', 'success'))
+  }
 
   const save = async () => {
     try {
@@ -164,6 +183,7 @@ export default function UserDetailPage() {
       <div className="mb-6 flex gap-2 border-b border-border">
         {[
           { id: 'overview', label: 'Overview' },
+          { id: 'referrals', label: 'Referrals' },
           { id: 'manage', label: 'Manage' },
         ].map((t) => (
           <button
@@ -182,6 +202,14 @@ export default function UserDetailPage() {
       </div>
 
       {tab === 'overview' && <UserOverview user={user} />}
+
+      {tab === 'referrals' && (
+        referralLoading ? (
+          <p className="text-muted">Loading referrals…</p>
+        ) : (
+          <UserReferralPanel data={referralData} onCopy={copyCode} />
+        )
+      )}
 
       <div className={tab === 'manage' ? 'grid gap-6 lg:grid-cols-2' : 'hidden'}>
         <div className="rounded-xl border border-border bg-surface p-5">

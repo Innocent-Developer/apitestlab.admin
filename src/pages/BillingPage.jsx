@@ -1,71 +1,79 @@
-import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import AppShell from '../components/layout/AppShell'
-import DataTable from '../components/ui/DataTable'
-import Pagination from '../components/ui/Pagination'
-import Badge from '../components/ui/Badge'
-import Modal from '../components/ui/Modal'
-import api from '../lib/api'
-import { API_ENDPOINTS } from '../lib/constants'
+import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import AppShell from "../components/layout/AppShell";
+import DataTable from "../components/ui/DataTable";
+import Pagination from "../components/ui/Pagination";
+import Badge from "../components/ui/Badge";
+import Modal from "../components/ui/Modal";
+import api from "../lib/api";
+import { API_ENDPOINTS } from "../lib/constants";
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 20;
 
 export default function BillingPage() {
-  const [rows, setRows] = useState([])
-  const [total, setTotal] = useState(0)
-  const [page, setPage] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [timeline, setTimeline] = useState(null)
-  const [timelineUser, setTimelineUser] = useState(null)
+  const [rows, setRows] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [timeline, setTimeline] = useState(null);
+  const [timelineUser, setTimelineUser] = useState(null);
 
   const load = useCallback(async () => {
-    setLoading(true)
+    setLoading(true);
     try {
       const { data } = await api.get(API_ENDPOINTS.ADMIN.BILLING_USERS, {
         params: { skip: page * PAGE_SIZE, limit: PAGE_SIZE },
-      })
-      setRows(data.rows || [])
-      setTotal(data.total || 0)
+      });
+      setRows(data.rows || []);
+      setTotal(data.total || 0);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [page])
+  }, [page]);
 
   useEffect(() => {
-    load()
-  }, [load])
+    load();
+  }, [load]);
 
   const openTimeline = async (userId, email) => {
-    const { data } = await api.get(API_ENDPOINTS.ADMIN.BILLING_TIMELINE(userId))
-    setTimeline(data.events || [])
-    setTimelineUser(email)
-  }
+    const { data } = await api.get(
+      API_ENDPOINTS.ADMIN.BILLING_TIMELINE(userId),
+    );
+    setTimeline(data.events || []);
+    setTimelineUser(email);
+  };
 
   const columns = [
     {
-      key: 'email',
-      label: 'User',
+      key: "email",
+      label: "User",
       render: (r) => (
         <Link to={`/users/${r.user_id}`} className="text-info hover:underline">
           {r.email}
         </Link>
       ),
     },
-    { key: 'plan', label: 'Plan', render: (r) => <Badge variant="plan">{r.plan}</Badge> },
     {
-      key: 'trial',
-      label: 'Trial',
-      render: (r) => (r.is_trial_active ? 'Active' : ''),
+      key: "plan",
+      label: "Plan",
+      render: (r) => <Badge variant="plan">{r.plan}</Badge>,
     },
     {
-      key: 'renews',
-      label: 'Renews',
+      key: "trial",
+      label: "Trial",
+      render: (r) => (r.is_trial_active ? "Active" : ""),
+    },
+    {
+      key: "renews",
+      label: "Renews",
       render: (r) =>
-        r.subscription_renews_at ? new Date(r.subscription_renews_at).toLocaleDateString() : '',
+        r.subscription_renews_at
+          ? new Date(r.subscription_renews_at).toLocaleDateString()
+          : "",
     },
     {
-      key: 'actions',
-      label: '',
+      key: "actions",
+      label: "",
       render: (r) => (
         <button
           type="button"
@@ -76,7 +84,7 @@ export default function BillingPage() {
         </button>
       ),
     },
-  ]
+  ];
 
   return (
     <AppShell title="Billing">
@@ -86,7 +94,12 @@ export default function BillingPage() {
         ) : (
           <>
             <DataTable columns={columns} rows={rows} />
-            <Pagination page={page} pageSize={PAGE_SIZE} total={total} onPageChange={setPage} />
+            <Pagination
+              page={page}
+              pageSize={PAGE_SIZE}
+              total={total}
+              onPageChange={setPage}
+            />
           </>
         )}
       </div>
@@ -94,8 +107,8 @@ export default function BillingPage() {
       <Modal
         open={Boolean(timeline)}
         onClose={() => {
-          setTimeline(null)
-          setTimelineUser(null)
+          setTimeline(null);
+          setTimelineUser(null);
         }}
         title={`Billing timeline  ${timelineUser}`}
         wide
@@ -103,10 +116,13 @@ export default function BillingPage() {
         {timeline?.length ? (
           <ul className="space-y-3">
             {timeline.map((ev, i) => (
-              <li key={i} className="rounded-lg border border-border px-4 py-3 text-sm">
+              <li
+                key={i}
+                className="rounded-lg border border-border px-4 py-3 text-sm"
+              >
                 <span className="font-medium text-primary">{ev.type}</span>
                 <span className="ml-2 text-muted">
-                  {ev.at ? new Date(ev.at).toLocaleString() : ''}
+                  {ev.at ? new Date(ev.at).toLocaleString() : ""}
                 </span>
               </li>
             ))}
@@ -116,5 +132,5 @@ export default function BillingPage() {
         )}
       </Modal>
     </AppShell>
-  )
+  );
 }

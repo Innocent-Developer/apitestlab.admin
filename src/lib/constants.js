@@ -30,5 +30,8 @@ export const API_ENDPOINTS = {
     HISTORY_AUDIT: '/api/admin/history/admin-audit',
     LOGIN_SESSIONS: '/api/admin/auth/sessions',
     SERVER_HEALTH: '/api/admin/server-health',
+    REFERRALS_OVERVIEW: '/api/admin/referrals/overview',
+    REFERRALS_GRAPH: '/api/admin/referrals/graph',
+    USER_REFERRALS: (id) => `/api/admin/referrals/users/${id}`,
   },
 }

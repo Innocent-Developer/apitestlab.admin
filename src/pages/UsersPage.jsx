@@ -131,6 +131,23 @@ export default function UsersPage() {
       render: (row) => <Badge variant="plan">{row.plan}</Badge>,
     },
     {
+      key: 'referrals',
+      label: 'Referrals',
+      render: (row) => {
+        const n = row.referral_qualified_count ?? 0
+        return n > 0 ? (
+          <Link
+            to={`/users/${row._id}?tab=referrals`}
+            className="text-sm font-medium text-pulse hover:underline"
+          >
+            {n}
+          </Link>
+        ) : (
+          <span className="text-muted">0</span>
+        )
+      },
+    },
+    {
       key: 'status',
       label: 'Status',
       render: (row) => (

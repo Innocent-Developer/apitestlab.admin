@@ -8,12 +8,14 @@ import {
   Mail,
   Server,
   Shield,
+  Gift,
 } from 'lucide-react'
 
 const NAV = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true },
   { to: '/server-health', icon: Server, label: 'Server health' },
   { to: '/users', icon: Users, label: 'Users' },
+  { to: '/referrals', icon: Gift, label: 'Referrals' },
   { to: '/activity', icon: Activity, label: 'Activity' },
   { to: '/billing', icon: CreditCard, label: 'Billing' },
   { to: '/analytics', icon: BarChart3, label: 'Analytics' },
