@@ -85,7 +85,7 @@ export default function ReferralsPage() {
       key: 'referral_code',
       label: 'Code',
       render: (r) => (
-        <span className="font-mono text-xs text-pulse">{r.referral_code || '—'}</span>
+        <span className="font-mono text-xs text-pulse">{r.referral_code || ''}</span>
       ),
     },
     {
@@ -117,7 +117,7 @@ export default function ReferralsPage() {
             {r.referred_by.email}
           </Link>
         ) : (
-          <span className="text-muted">—</span>
+          <span className="text-muted"></span>
         ),
     },
     {

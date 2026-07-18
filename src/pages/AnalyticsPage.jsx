@@ -261,14 +261,14 @@ export default function AnalyticsPage() {
           <p className="text-xs text-muted">API tests ({days}d)</p>
           <p className="text-2xl font-bold text-primary">{growthTotals.tests}</p>
           <p className="mt-1 text-xs text-muted">
-            Tests per new user: {testsPerSignup === null ? '—' : testsPerSignup}
+            Tests per new user: {testsPerSignup === null ? '' : testsPerSignup}
           </p>
         </div>
         <div className="rounded-xl border border-border bg-surface p-4">
           <p className="text-xs text-muted">Traffic events ({days}d)</p>
           <p className="text-2xl font-bold text-primary">{growthTotals.traffic}</p>
           <p className="mt-1 text-xs text-muted">
-            Traffic per new user: {trafficPerSignup === null ? '—' : trafficPerSignup}
+            Traffic per new user: {trafficPerSignup === null ? '' : trafficPerSignup}
           </p>
         </div>
       </div>

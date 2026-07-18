@@ -76,7 +76,7 @@ export default function UserReferralPanel({ data, onCopy }) {
         <div className="rounded-xl border border-border bg-surface p-4">
           <p className="text-xs text-muted">Reward plan</p>
           <p className="text-lg font-semibold text-primary">
-            {data.active_reward_plan || '—'}
+            {data.active_reward_plan || ''}
           </p>
           {data.active_reward_expires_at && (
             <p className="text-[10px] text-muted">until {fmtDate(data.active_reward_expires_at)}</p>

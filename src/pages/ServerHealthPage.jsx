@@ -55,7 +55,7 @@ function InfoRow({ label, value, mono = false }) {
   return (
     <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between">
       <span className="text-xs text-muted">{label}</span>
-      <span className={`text-sm text-primary ${mono ? 'font-mono break-all' : ''}`}>{value ?? '—'}</span>
+      <span className={`text-sm text-primary ${mono ? 'font-mono break-all' : ''}`}>{value ?? ''}</span>
     </div>
   )
 }
@@ -153,7 +153,7 @@ export default function ServerHealthPage() {
               </div>
               <p className="text-2xl font-bold text-primary">{host?.uptime?.human}</p>
               <p className="mt-2 text-xs text-muted">
-                Boot: {host?.uptime?.boot_time ? new Date(host.uptime.boot_time).toLocaleString() : '—'}
+                Boot: {host?.uptime?.boot_time ? new Date(host.uptime.boot_time).toLocaleString() : ''}
               </p>
             </div>
           </div>
@@ -169,7 +169,7 @@ export default function ServerHealthPage() {
               </div>
               <div className="space-y-3">
                 <InfoRow label="Database" value={mongo?.database} />
-                <InfoRow label="Ping" value={mongo?.ping_ms != null ? `${mongo.ping_ms} ms` : '—'} />
+                <InfoRow label="Ping" value={mongo?.ping_ms != null ? `${mongo.ping_ms} ms` : ''} />
                 <InfoRow label="Collections" value={mongo?.collections} />
                 {mongo?.error && (
                   <p className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger">
@@ -204,7 +204,7 @@ export default function ServerHealthPage() {
                 />
                 <InfoRow
                   label="Network (total)"
-                  value={host?.network ? `↑ ${host.network.sent} · ↓ ${host.network.recv}` : '—'}
+                  value={host?.network ? `↑ ${host.network.sent} · ↓ ${host.network.recv}` : ''}
                 />
               </div>
             </div>
@@ -226,7 +226,7 @@ export default function ServerHealthPage() {
               <InfoRow label="Disk path" value={host?.disk?.path} mono />
               <InfoRow
                 label="Free disk"
-                value={host?.disk?.free ? `${host.disk.free} free` : '—'}
+                value={host?.disk?.free ? `${host.disk.free} free` : ''}
               />
             </div>
           </div>
