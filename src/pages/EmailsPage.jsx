@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Loader2, Mail, Search, Sparkles, AtSign, Users } from 'lucide-react'
+import { Loader2, Mail, Search, Sparkles, AtSign, Users, Inbox, Send, RefreshCw, Eye } from 'lucide-react'
 import AppShell from '../components/layout/AppShell'
 import Badge from '../components/ui/Badge'
 import DataTable from '../components/ui/DataTable'
@@ -33,6 +33,7 @@ const EMAIL_LENGTHS = [
 export default function EmailsPage() {
   const { toast } = useToast()
 
+  const [pageView, setPageView] = useState('compose') // compose | sent | received
   const [mode, setMode] = useState('users') // users | custom
 
   const [users, setUsers] = useState([])
@@ -57,8 +58,15 @@ export default function EmailsPage() {
   const [drafting, setDrafting] = useState(false)
   const [sending, setSending] = useState(false)
 
+  const [mailRows, setMailRows] = useState([])
+  const [mailHasMore, setMailHasMore] = useState(false)
+  const [loadingMails, setLoadingMails] = useState(false)
+  const [selectedMailId, setSelectedMailId] = useState(null)
+  const [mailDetail, setMailDetail] = useState(null)
+  const [loadingDetail, setLoadingDetail] = useState(false)
+
   const loadUsers = useCallback(async () => {
-    if (mode !== 'users') return
+    if (mode !== 'users' || pageView !== 'compose') return
     setLoadingUsers(true)
     try {
       const params = { skip: page * PAGE_SIZE, limit: PAGE_SIZE }
@@ -73,11 +81,59 @@ export default function EmailsPage() {
     } finally {
       setLoadingUsers(false)
     }
-  }, [mode, page, q, plan, isActive, toast])
+  }, [mode, page, q, plan, isActive, toast, pageView])
+
+  const loadMails = useCallback(async () => {
+    if (pageView !== 'sent' && pageView !== 'received') return
+    setLoadingMails(true)
+    setMailDetail(null)
+    setSelectedMailId(null)
+    try {
+      const endpoint =
+        pageView === 'sent' ? API_ENDPOINTS.ADMIN.EMAILS_SENT : API_ENDPOINTS.ADMIN.EMAILS_RECEIVED
+      const { data } = await api.get(endpoint, { params: { limit: 40 } })
+      setMailRows(Array.isArray(data?.data) ? data.data : [])
+      setMailHasMore(!!data?.has_more)
+    } catch (err) {
+      toast(getApiErrorDetail(err), 'error')
+      setMailRows([])
+    } finally {
+      setLoadingMails(false)
+    }
+  }, [pageView, toast])
 
   useEffect(() => {
     loadUsers()
   }, [loadUsers])
+
+  useEffect(() => {
+    loadMails()
+  }, [loadMails])
+
+  const openMail = async (id) => {
+    if (!id) return
+    setSelectedMailId(id)
+    setLoadingDetail(true)
+    setMailDetail(null)
+    try {
+      const endpoint =
+        pageView === 'sent'
+          ? API_ENDPOINTS.ADMIN.EMAIL_SENT(id)
+          : API_ENDPOINTS.ADMIN.EMAIL_RECEIVED(id)
+      const { data } = await api.get(endpoint)
+      setMailDetail(data)
+    } catch (err) {
+      toast(getApiErrorDetail(err), 'error')
+    } finally {
+      setLoadingDetail(false)
+    }
+  }
+
+  const formatAddrs = (v) => {
+    if (!v) return '—'
+    if (Array.isArray(v)) return v.join(', ') || '—'
+    return String(v)
+  }
 
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds])
   const visibleSelected = users.length > 0 && users.every((u) => selectedSet.has(u._id))
@@ -192,35 +248,199 @@ export default function EmailsPage() {
             <div>
               <h2 className="text-lg font-semibold text-primary">Email center</h2>
               <p className="text-sm text-muted">
-                Generate professional emails with AI, then send to users or any custom receiver address.
+                Send with Resend, or browse sent and received mail from your Resend account.
               </p>
             </div>
           </div>
-          <div className="flex rounded-lg border border-border p-1">
-            <button
-              type="button"
-              onClick={() => setMode('users')}
-              className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition ${
-                mode === 'users' ? 'bg-pulse/15 text-pulse' : 'text-muted hover:text-primary'
-              }`}
-            >
-              <Users className="h-4 w-4" />
-              To users
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode('custom')}
-              className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition ${
-                mode === 'custom' ? 'bg-pulse/15 text-pulse' : 'text-muted hover:text-primary'
-              }`}
-            >
-              <AtSign className="h-4 w-4" />
-              Custom receiver
-            </button>
+          <div className="flex flex-wrap gap-2">
+            <div className="flex rounded-lg border border-border p-1">
+              <button
+                type="button"
+                onClick={() => setPageView('compose')}
+                className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition ${
+                  pageView === 'compose' ? 'bg-pulse/15 text-pulse' : 'text-muted hover:text-primary'
+                }`}
+              >
+                <Send className="h-4 w-4" />
+                Compose
+              </button>
+              <button
+                type="button"
+                onClick={() => setPageView('sent')}
+                className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition ${
+                  pageView === 'sent' ? 'bg-pulse/15 text-pulse' : 'text-muted hover:text-primary'
+                }`}
+              >
+                <Mail className="h-4 w-4" />
+                Sent
+              </button>
+              <button
+                type="button"
+                onClick={() => setPageView('received')}
+                className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition ${
+                  pageView === 'received' ? 'bg-pulse/15 text-pulse' : 'text-muted hover:text-primary'
+                }`}
+              >
+                <Inbox className="h-4 w-4" />
+                Received
+              </button>
+            </div>
+            {pageView === 'compose' && (
+              <div className="flex rounded-lg border border-border p-1">
+                <button
+                  type="button"
+                  onClick={() => setMode('users')}
+                  className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition ${
+                    mode === 'users' ? 'bg-pulse/15 text-pulse' : 'text-muted hover:text-primary'
+                  }`}
+                >
+                  <Users className="h-4 w-4" />
+                  To users
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMode('custom')}
+                  className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition ${
+                    mode === 'custom' ? 'bg-pulse/15 text-pulse' : 'text-muted hover:text-primary'
+                  }`}
+                >
+                  <AtSign className="h-4 w-4" />
+                  Custom receiver
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
+      {(pageView === 'sent' || pageView === 'received') && (
+        <div className="mb-6 grid gap-6 xl:grid-cols-[1fr_420px]">
+          <div className="rounded-xl border border-border bg-surface p-5">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h3 className="font-semibold text-primary">
+                {pageView === 'sent' ? 'Sent via Resend' : 'Received via Resend'}
+              </h3>
+              <button
+                type="button"
+                onClick={loadMails}
+                className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-sm text-muted hover:text-primary"
+              >
+                <RefreshCw className={`h-4 w-4 ${loadingMails ? 'animate-spin' : ''}`} />
+                Refresh
+              </button>
+            </div>
+            {loadingMails ? (
+              <div className="flex items-center gap-2 py-10 text-sm text-muted">
+                <Loader2 className="h-4 w-4 animate-spin" /> Loading…
+              </div>
+            ) : mailRows.length === 0 ? (
+              <p className="py-8 text-sm text-muted">
+                {pageView === 'sent'
+                  ? 'No sent emails yet. Compose and send to see them here.'
+                  : 'No received emails. Inbound requires a Resend receiving domain.'}
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[560px] text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-xs uppercase tracking-wider text-muted">
+                      <th className="pb-2 pr-3 font-medium">Subject</th>
+                      <th className="pb-2 pr-3 font-medium">From</th>
+                      <th className="pb-2 pr-3 font-medium">To</th>
+                      <th className="pb-2 pr-3 font-medium">Created</th>
+                      <th className="pb-2 font-medium" />
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {mailRows.map((row) => (
+                      <tr
+                        key={row.id}
+                        className={selectedMailId === row.id ? 'bg-pulse/5' : ''}
+                      >
+                        <td className="max-w-[220px] truncate py-3 pr-3 text-primary">
+                          {row.subject || '(no subject)'}
+                        </td>
+                        <td className="max-w-[160px] truncate py-3 pr-3 text-muted">
+                          {formatAddrs(row.from)}
+                        </td>
+                        <td className="max-w-[160px] truncate py-3 pr-3 text-muted">
+                          {formatAddrs(row.to)}
+                        </td>
+                        <td className="whitespace-nowrap py-3 pr-3 text-xs text-muted">
+                          {row.created_at
+                            ? new Date(row.created_at).toLocaleString()
+                            : '—'}
+                        </td>
+                        <td className="py-3 text-right">
+                          <button
+                            type="button"
+                            onClick={() => openMail(row.id)}
+                            className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs text-muted hover:text-primary"
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                            View
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {mailHasMore ? (
+                  <p className="mt-3 text-xs text-muted">More emails available in Resend.</p>
+                ) : null}
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-xl border border-border bg-surface p-5">
+            <h3 className="mb-3 font-semibold text-primary">Message</h3>
+            {loadingDetail ? (
+              <div className="flex items-center gap-2 py-8 text-sm text-muted">
+                <Loader2 className="h-4 w-4 animate-spin" /> Loading…
+              </div>
+            ) : !mailDetail ? (
+              <p className="text-sm text-muted">Select an email to view details.</p>
+            ) : (
+              <div className="space-y-3 text-sm">
+                <div>
+                  <p className="text-xs text-muted">Subject</p>
+                  <p className="font-medium text-primary">{mailDetail.subject || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted">From</p>
+                  <p className="text-primary">{formatAddrs(mailDetail.from)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted">To</p>
+                  <p className="text-primary">{formatAddrs(mailDetail.to)}</p>
+                </div>
+                {mailDetail.last_event ? (
+                  <div>
+                    <p className="text-xs text-muted">Last event</p>
+                    <Badge>{mailDetail.last_event}</Badge>
+                  </div>
+                ) : null}
+                <div>
+                  <p className="mb-1 text-xs text-muted">Body</p>
+                  {mailDetail.html ? (
+                    <div
+                      className="max-h-80 overflow-auto rounded-lg border border-border bg-void p-3 text-xs"
+                      dangerouslySetInnerHTML={{ __html: mailDetail.html }}
+                    />
+                  ) : (
+                    <pre className="max-h-80 overflow-auto whitespace-pre-wrap rounded-lg border border-border bg-void p-3 text-xs text-primary">
+                      {mailDetail.text || 'No body returned by Resend for this message.'}
+                    </pre>
+                  )}
+                </div>
+                <p className="break-all text-[10px] text-muted">ID: {mailDetail.id}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {pageView === 'compose' && (
       <div className={`grid gap-6 ${mode === 'users' ? 'xl:grid-cols-[1fr_420px]' : ''}`}>
         <form onSubmit={sendEmail} className="space-y-6">
           {mode === 'custom' && (
@@ -500,6 +720,7 @@ export default function EmailsPage() {
           </div>
         )}
       </div>
+      )}
     </AppShell>
   )
 }
