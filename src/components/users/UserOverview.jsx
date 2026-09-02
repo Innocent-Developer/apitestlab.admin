@@ -40,7 +40,7 @@ function Section({ icon: Icon, title, children }) {
   )
 }
 
-export default function UserOverview({ user }) {
+export default function UserOverview({ user, onApproveTrial }) {
   const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || ''
   const addressParts = [
     user.address_line1,
@@ -141,6 +141,57 @@ export default function UserOverview({ user }) {
         <Field label="Freemius license" value={user.freemius_license_id} mono />
         <Field label="Freemius plan ID" value={user.freemius_plan_id} mono />
         <Field label="Freemius pricing ID" value={user.freemius_pricing_id} mono />
+      </Section>
+
+      <Section icon={ShieldCheck} title="Abuse Prevention & Trial Risk">
+        <Field
+          label="Risk Tier"
+          value={
+            <Badge
+              variant={
+                user.trial_risk_tier === 'restricted'
+                  ? 'danger'
+                  : user.trial_risk_tier === 'flagged'
+                  ? 'warn'
+                  : 'success'
+              }
+            >
+              {user.trial_risk_tier || 'normal'}
+            </Badge>
+          }
+        />
+        <Field
+          label="Risk Score"
+          value={
+            <span
+              className={`font-bold ${
+                (user.trial_risk_score || 0) >= 80
+                  ? 'text-danger'
+                  : (user.trial_risk_score || 0) >= 40
+                  ? 'text-warn'
+                  : 'text-success'
+              }`}
+            >
+              {user.trial_risk_score ?? 0} pts
+            </span>
+          }
+        />
+        <Field label="Normalized Email" value={user.normalized_email || user.email} mono />
+        <Field label="Registration IP" value={user.registration_ip} mono />
+        <div className="sm:col-span-2 lg:col-span-2">
+          <Field label="Device Fingerprint" value={user.device_fingerprint || 'Not captured'} mono />
+        </div>
+        {onApproveTrial && (user.trial_risk_tier === 'restricted' || user.trial_risk_tier === 'flagged' || !user.is_trial_active) && (
+          <div className="sm:col-span-2 lg:col-span-3 pt-2">
+            <button
+              type="button"
+              onClick={onApproveTrial}
+              className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-500 transition shadow-sm"
+            >
+              Approve 7-Day Pro Trial
+            </button>
+          </div>
+        )}
       </Section>
 
       <Section icon={ShieldCheck} title="Security & login">

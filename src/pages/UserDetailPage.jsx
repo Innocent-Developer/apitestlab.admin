@@ -101,6 +101,16 @@ export default function UserDetailPage() {
     }
   }
 
+  const approveTrial = async () => {
+    try {
+      await api.post(`/api/admin/trials/${id}/approve`)
+      toast('Trial approved and 7-day Pro access activated', 'success')
+      load()
+    } catch (err) {
+      toast(getApiErrorDetail(err), 'error')
+    }
+  }
+
   const exportUser = async (format) => {
     setExporting(true)
     try {
@@ -201,7 +211,7 @@ export default function UserDetailPage() {
         ))}
       </div>
 
-      {tab === 'overview' && <UserOverview user={user} />}
+      {tab === 'overview' && <UserOverview user={user} onApproveTrial={approveTrial} />}
 
       {tab === 'referrals' && (
         referralLoading ? (

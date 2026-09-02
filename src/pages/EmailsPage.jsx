@@ -130,8 +130,8 @@ export default function EmailsPage() {
   }
 
   const formatAddrs = (v) => {
-    if (!v) return '—'
-    if (Array.isArray(v)) return v.join(', ') || '—'
+    if (!v) return ''
+    if (Array.isArray(v)) return v.join(', ') || ''
     return String(v)
   }
 
@@ -369,7 +369,7 @@ export default function EmailsPage() {
                         <td className="whitespace-nowrap py-3 pr-3 text-xs text-muted">
                           {row.created_at
                             ? new Date(row.created_at).toLocaleString()
-                            : '—'}
+                            : ''}
                         </td>
                         <td className="py-3 text-right">
                           <button
@@ -404,7 +404,7 @@ export default function EmailsPage() {
               <div className="space-y-3 text-sm">
                 <div>
                   <p className="text-xs text-muted">Subject</p>
-                  <p className="font-medium text-primary">{mailDetail.subject || '—'}</p>
+                  <p className="font-medium text-primary">{mailDetail.subject || ''}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted">From</p>
