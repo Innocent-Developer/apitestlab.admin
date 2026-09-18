@@ -7,6 +7,7 @@ import Pagination from '../components/ui/Pagination'
 import { useToast } from '../components/ui/Toast'
 import api, { getApiErrorDetail } from '../lib/api'
 import { API_ENDPOINTS } from '../lib/constants'
+import { sanitizeHtml } from '../lib/sanitizeHtml'
 
 const PAGE_SIZE = 20
 
@@ -425,7 +426,7 @@ export default function EmailsPage() {
                   {mailDetail.html ? (
                     <div
                       className="max-h-80 overflow-auto rounded-lg border border-border bg-void p-3 text-xs"
-                      dangerouslySetInnerHTML={{ __html: mailDetail.html }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(mailDetail.html) }}
                     />
                   ) : (
                     <pre className="max-h-80 overflow-auto whitespace-pre-wrap rounded-lg border border-border bg-void p-3 text-xs text-primary">
