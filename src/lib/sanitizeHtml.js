@@ -1,3 +1,4 @@
+/* eslint-disable no-script-url */
 /**
  * Lightweight client-side HTML sanitizer to protect dangerouslySetInnerHTML.
  * Strips script tags, event handlers (on*), iframe/embed tags, and dangerous protocol URIs.
@@ -37,6 +38,8 @@ export function sanitizeHtml(dirty) {
     'applet',
   ])
 
+  const DANGEROUS_PROTOCOLS = /^\s*(javascript|vbscript|data:text\/html):/i
+
   const sanitizeNode = (node) => {
     const children = Array.from(node.childNodes)
     for (const child of children) {
@@ -57,7 +60,7 @@ export function sanitizeHtml(dirty) {
             child.removeAttribute(attr.name)
           } else if (
             (name === 'href' || name === 'src' || name === 'action' || name === 'formaction') &&
-            (val.startsWith('javascript:') || val.startsWith('vbscript:') || val.startsWith('data:text/html'))
+            DANGEROUS_PROTOCOLS.test(val)
           ) {
             child.removeAttribute(attr.name)
           }
@@ -71,3 +74,4 @@ export function sanitizeHtml(dirty) {
   sanitizeNode(doc.body)
   return doc.body.innerHTML
 }
+
