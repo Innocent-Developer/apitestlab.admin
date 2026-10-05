@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { GraduationCap, Eye, CheckCircle2, XCircle, Clock, ShieldAlert, Loader2, RefreshCw } from 'lucide-react'
+import { GraduationCap, Eye, CheckCircle2, XCircle, Loader2, RefreshCw } from 'lucide-react'
+
 import AppShell from '../components/layout/AppShell'
 import DataTable from '../components/ui/DataTable'
 import Pagination from '../components/ui/Pagination'
@@ -312,8 +313,9 @@ export default function StudentVerificationsPage() {
             </div>
             <div className="p-6 overflow-auto flex-1 flex items-center justify-center bg-black/40">
               {viewingDocUrl.endsWith('.pdf') ? (
-                <iframe src={viewingDocUrl} className="w-full h-[600px] rounded border border-border" />
+                <iframe title="Student Document PDF Viewer" src={viewingDocUrl} className="w-full h-[600px] rounded border border-border" />
               ) : (
+
                 <img
                   src={viewingDocUrl}
                   alt="Student ID Document"
