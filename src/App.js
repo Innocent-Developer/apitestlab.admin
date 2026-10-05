@@ -12,6 +12,7 @@ import AnalyticsPage from './pages/AnalyticsPage'
 import EmailsPage from './pages/EmailsPage'
 import ServerHealthPage from './pages/ServerHealthPage'
 import ReferralsPage from './pages/ReferralsPage'
+import StudentVerificationsPage from './pages/StudentVerificationsPage'
 
 export default function App() {
   return (
@@ -36,6 +37,15 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/student-verifications"
+              element={
+                <ProtectedRoute>
+                  <StudentVerificationsPage />
+                </ProtectedRoute>
+              }
+            />
+
             <Route
               path="/users/:id"
               element={

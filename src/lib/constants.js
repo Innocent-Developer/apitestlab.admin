@@ -38,5 +38,10 @@ export const API_ENDPOINTS = {
     REFERRALS_OVERVIEW: '/api/admin/referrals/overview',
     REFERRALS_GRAPH: '/api/admin/referrals/graph',
     USER_REFERRALS: (id) => `/api/admin/referrals/users/${id}`,
+    STUDENT_VERIFICATIONS: '/api/admin/student-verifications',
+    STUDENT_VERIFICATION_DOC_URL: (id) => `/api/admin/student-verifications/${id}/document-url`,
+    STUDENT_VERIFICATION_APPROVE: (id) => `/api/admin/student-verifications/${id}/approve`,
+    STUDENT_VERIFICATION_REJECT: (id) => `/api/admin/student-verifications/${id}/reject`,
   },
 }
+

@@ -9,18 +9,21 @@ import {
   Server,
   Shield,
   Gift,
+  GraduationCap,
 } from 'lucide-react'
 
 const NAV = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true },
   { to: '/server-health', icon: Server, label: 'Server health' },
   { to: '/users', icon: Users, label: 'Users' },
+  { to: '/student-verifications', icon: GraduationCap, label: 'Student verifications' },
   { to: '/referrals', icon: Gift, label: 'Referrals' },
   { to: '/activity', icon: Activity, label: 'Activity' },
   { to: '/billing', icon: CreditCard, label: 'Billing' },
   { to: '/analytics', icon: BarChart3, label: 'Analytics' },
   { to: '/emails', icon: Mail, label: 'Emails' },
 ]
+
 
 export default function Sidebar() {
   return (
