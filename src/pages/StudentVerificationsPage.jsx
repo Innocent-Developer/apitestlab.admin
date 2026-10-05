@@ -112,10 +112,10 @@ export default function StudentVerificationsPage() {
       label: 'Account Email',
       render: (r) => (
         <div>
-          <Link to={`/users/${r.user_id}`} className="font-semibold text-primary hover:underline">
-            {r.account_email || r.user_id}
+          <Link to={`/users/${r?.user_id}`} className="font-semibold text-primary hover:underline">
+            {r?.account_email || r?.user_id || 'N/A'}
           </Link>
-          <div className="text-xs text-muted">ID: {r.user_id}</div>
+          <div className="text-xs text-muted">ID: {r?.user_id || 'N/A'}</div>
         </div>
       ),
     },
@@ -123,8 +123,8 @@ export default function StudentVerificationsPage() {
       key: 'method',
       label: 'Method',
       render: (r) => (
-        <Badge variant={r.method === 'email' ? 'info' : 'default'}>
-          {r.method === 'email' ? 'University Email' : 'Document Photo'}
+        <Badge variant={r?.method === 'email' ? 'info' : 'default'}>
+          {r?.method === 'email' ? 'University Email' : 'Document Photo'}
         </Badge>
       ),
     },
@@ -133,8 +133,8 @@ export default function StudentVerificationsPage() {
       label: 'Institution & Grad Date',
       render: (r) => (
         <div>
-          <p className="text-sm font-medium text-primary">{r.university_name || r.university_email || 'N/A'}</p>
-          {r.expected_graduation_date && (
+          <p className="text-sm font-medium text-primary">{r?.university_name || r?.university_email || 'N/A'}</p>
+          {r?.expected_graduation_date && (
             <p className="text-xs text-muted">Grad: {r.expected_graduation_date}</p>
           )}
         </div>
@@ -144,7 +144,7 @@ export default function StudentVerificationsPage() {
       key: 'risk_score',
       label: 'Risk Score',
       render: (r) => {
-        const score = r.risk_score || 0
+        const score = r?.risk_score || 0
         const isHigh = score >= 80
         const isMed = score >= 40 && score < 80
         return (
@@ -168,10 +168,10 @@ export default function StudentVerificationsPage() {
       render: (r) => (
         <Badge
           variant={
-            r.status === 'approved' ? 'success' : r.status === 'rejected' ? 'danger' : 'warn'
+            r?.status === 'approved' ? 'success' : r?.status === 'rejected' ? 'danger' : 'warn'
           }
         >
-          {r.status.toUpperCase()}
+          {String(r?.status || 'pending').toUpperCase()}
         </Badge>
       ),
     },
@@ -180,7 +180,7 @@ export default function StudentVerificationsPage() {
       label: 'Submitted',
       render: (r) => (
         <span className="text-xs text-muted">
-          {r.submitted_at ? new Date(r.submitted_at).toLocaleString() : 'N/A'}
+          {r?.submitted_at ? new Date(r.submitted_at).toLocaleString() : 'N/A'}
         </span>
       ),
     },
@@ -189,7 +189,7 @@ export default function StudentVerificationsPage() {
       label: 'Actions',
       render: (r) => (
         <div className="flex items-center gap-2">
-          {r.document_r2_key ? (
+          {r?.document_r2_key ? (
             <button
               type="button"
               onClick={() => handleViewDocument(r.id)}
@@ -207,7 +207,7 @@ export default function StudentVerificationsPage() {
             <span className="text-xs text-muted">Auto Verified</span>
           )}
 
-          {r.status === 'pending' && (
+          {r?.status === 'pending' && (
             <>
               <button
                 type="button"
@@ -284,15 +284,24 @@ export default function StudentVerificationsPage() {
           ))}
         </div>
 
-        {/* Data Table */}
-        <DataTable columns={columns} data={items} loading={loading} />
-
-        <Pagination
-          page={page - 1}
-          pageSize={20}
-          total={total}
-          onPageChange={(p) => setPage(p + 1)}
-        />
+        {/* Data Table Card Container */}
+        <div className="rounded-xl border border-border bg-surface overflow-hidden">
+          {loading ? (
+            <div className="p-12 text-center text-muted flex items-center justify-center gap-2">
+              <Loader2 className="w-5 h-5 animate-spin text-pulse" /> Loading student verification requests...
+            </div>
+          ) : (
+            <>
+              <DataTable columns={columns} rows={items} emptyMessage="No student verification requests found." />
+              <Pagination
+                page={page - 1}
+                pageSize={20}
+                total={total}
+                onPageChange={(p) => setPage(p + 1)}
+              />
+            </>
+          )}
+        </div>
       </div>
 
       {/* Document Viewer Modal */}
@@ -312,10 +321,9 @@ export default function StudentVerificationsPage() {
               </button>
             </div>
             <div className="p-6 overflow-auto flex-1 flex items-center justify-center bg-black/40">
-              {viewingDocUrl.endsWith('.pdf') ? (
+              {viewingDocUrl.toLowerCase().includes('.pdf') ? (
                 <iframe title="Student Document PDF Viewer" src={viewingDocUrl} className="w-full h-[600px] rounded border border-border" />
               ) : (
-
                 <img
                   src={viewingDocUrl}
                   alt="Student ID Document"

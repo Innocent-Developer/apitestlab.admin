@@ -10,6 +10,7 @@ export default function Badge({ children, variant = 'default', className = '' })
     success: 'bg-pulse/15 text-pulse border-pulse/30',
     danger: 'bg-danger/15 text-danger border-danger/30',
     warn: 'bg-warn/15 text-warn border-warn/30',
+    info: 'bg-info/15 text-info border-info/30',
     plan: PLAN_STYLES[String(children).toLowerCase()] || PLAN_STYLES.free,
   }
   const key = variant === 'plan' ? 'plan' : variant
