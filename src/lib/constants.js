@@ -45,6 +45,7 @@ export const API_ENDPOINTS = {
     STUDENT_VERIFICATION_REJECT: (id) => `/api/admin/student-verifications/${id}/reject`,
     STUDENT_VERIFICATION_MORE_INFO: (id) => `/api/admin/student-verifications/${id}/request-more-info`,
     STUDENT_VERIFICATION_NOTES: (id) => `/api/admin/student-verifications/${id}/notes`,
+    STUDENT_VERIFICATION_DELETE: (id) => `/api/admin/student-verifications/${id}`,
   },
 }
 

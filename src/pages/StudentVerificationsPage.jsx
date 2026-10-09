@@ -11,6 +11,7 @@ import {
   HelpCircle,
   FileText,
   Save,
+  Trash2,
 } from 'lucide-react'
 
 import AppShell from '../components/layout/AppShell'
@@ -52,6 +53,10 @@ export default function StudentVerificationsPage() {
   const [moreInfoItem, setMoreInfoItem] = useState(null)
   const [moreInfoReason, setMoreInfoReason] = useState('')
   const [submittingMoreInfo, setSubmittingMoreInfo] = useState(false)
+
+  // Delete modal state
+  const [deletingItem, setDeletingItem] = useState(null)
+  const [submittingDelete, setSubmittingDelete] = useState(false)
 
   // Action loading states
   const [approvingId, setApprovingId] = useState(null)
@@ -159,6 +164,25 @@ export default function StudentVerificationsPage() {
       toast(getApiErrorDetail(err), 'error')
     } finally {
       setSubmittingMoreInfo(false)
+    }
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!deletingItem) return
+    setSubmittingDelete(true)
+
+    try {
+      const { data } = await api.delete(
+        API_ENDPOINTS.ADMIN.STUDENT_VERIFICATION_DELETE(deletingItem.id)
+      )
+      toast(data.message || 'Student application and proof documents deleted successfully', 'success')
+      setDeletingItem(null)
+      if (detailItem?.id === deletingItem.id) setDetailItem(null)
+      loadData()
+    } catch (err) {
+      toast(getApiErrorDetail(err), 'error')
+    } finally {
+      setSubmittingDelete(false)
     }
   }
 
@@ -305,6 +329,16 @@ export default function StudentVerificationsPage() {
               </button>
             </>
           )}
+
+          <button
+            type="button"
+            onClick={() => setDeletingItem(r)}
+            title="Delete Application"
+            className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded bg-rose-950/70 text-rose-300 hover:bg-rose-900 border border-rose-800 transition"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            Delete
+          </button>
         </div>
       ),
     },
@@ -516,6 +550,13 @@ export default function StudentVerificationsPage() {
               <div className="flex gap-2">
                 <button
                   type="button"
+                  onClick={() => setDeletingItem(detailItem)}
+                  className="flex items-center gap-1 px-3 py-2 text-xs font-semibold rounded bg-rose-950 text-rose-300 border border-rose-800 hover:bg-rose-900 transition"
+                >
+                  <Trash2 className="w-3.5 h-3.5" /> Delete Application
+                </button>
+                <button
+                  type="button"
                   onClick={() => {
                     setMoreInfoItem(detailItem)
                     setMoreInfoReason('')
@@ -647,6 +688,47 @@ export default function StudentVerificationsPage() {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* Delete Verification Modal */}
+      {deletingItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-surface border border-border rounded-xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <h3 className="font-bold text-primary text-lg flex items-center gap-2 text-rose-400">
+              <Trash2 className="w-5 h-5" /> Delete Student Application
+            </h3>
+            <p className="text-xs text-muted">
+              Applicant: <span className="font-semibold text-primary">{deletingItem.account_email || deletingItem.user_id}</span>
+            </p>
+
+            <div className="p-3.5 rounded-lg bg-rose-950/40 border border-rose-800/80 text-rose-200 text-xs space-y-1">
+              <p className="font-semibold text-rose-300">⚠ Warning: Permanent Deletion</p>
+              <p>
+                This action will permanently delete the verification application record and purge all associated uploaded proof documents from storage (Cloudflare R2 / local VPS).
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeletingItem(null)}
+                disabled={submittingDelete}
+                className="px-4 py-2 text-xs font-semibold rounded bg-surface border border-border text-primary hover:bg-surface-hover"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={submittingDelete}
+                className="px-4 py-2 text-xs font-semibold rounded bg-rose-600 hover:bg-rose-500 text-white disabled:opacity-50 flex items-center gap-2"
+              >
+                {submittingDelete ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : <Trash2 className="w-4 h-4" />}
+                {submittingDelete ? 'Deleting...' : 'Permanently Delete'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </AppShell>
