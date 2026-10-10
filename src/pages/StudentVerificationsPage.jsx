@@ -12,6 +12,7 @@ import {
   FileText,
   Save,
   Trash2,
+  UserRound,
 } from 'lucide-react'
 
 import AppShell from '../components/layout/AppShell'
@@ -472,6 +473,31 @@ export default function StudentVerificationsPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Applicant details submitted in the education application wizard */}
+              {detailItem.applicant_details && (
+                <div className="rounded-xl border border-border bg-void p-4">
+                  <h4 className="mb-3 flex items-center gap-2 text-sm font-bold text-primary"><UserRound className="h-4 w-4 text-pulse" /> Applicant details</h4>
+                  <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2 lg:grid-cols-3">
+                    {[
+                      ['Full name', detailItem.applicant_details.full_name],
+                      ["Father / guardian", detailItem.applicant_details.father_name],
+                      ['Date of birth', detailItem.applicant_details.date_of_birth],
+                      ['Phone', detailItem.applicant_details.phone_number],
+                      ['Address', detailItem.applicant_details.address],
+                      ['City', detailItem.applicant_details.city],
+                      ['Country', detailItem.applicant_details.country],
+                      ['Course', detailItem.applicant_details.course_name],
+                      ['Study level', detailItem.applicant_details.study_level],
+                    ].map(([label, value]) => (
+                      <div key={label} className="rounded-lg border border-border/60 bg-surface p-3">
+                        <span className="text-[10px] font-semibold uppercase text-muted">{label}</span>
+                        <p className="mt-1 break-words font-medium text-primary">{value || 'N/A'}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Document Review Viewers */}
               <div>
